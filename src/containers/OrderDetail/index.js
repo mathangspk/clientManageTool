@@ -1,5 +1,4 @@
 import React, { Component, Fragment, } from 'react';
-
 import { connect } from 'react-redux';
 import * as orderActions from '../../actions/orderActions';
 import * as modalActions from '../../actions/modal';
@@ -7,7 +6,7 @@ import * as toolActions from '../../actions/toolActions';
 import * as customerActions from '../../actions/customerActions';
 import { bindActionCreators, compose } from 'redux';
 import styles from './style';
-import { Grid, withStyles, Fab, TextField, FormControl, Button } from '@material-ui/core';
+import { Grid, withStyles, Fab, TextField, FormControl, Button, Table } from '@material-ui/core';
 import { Redirect } from "react-router-dom";
 import { DeleteForever, ArrowBackIos, Edit } from '@material-ui/icons';
 import DataTable from 'react-data-table-component';
@@ -17,8 +16,269 @@ import moment from 'moment';
 import { popupConfirm } from '../../actions/ui';
 import ImageGallery from 'react-image-gallery';
 import { Multiselect } from 'multiselect-react-dropdown';
+import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TabStopPosition, TabStopType, TextRun, Table as TableD, TableCell as TableCellD, TableRow as TableRowD } from 'docx';
+import { saveAs } from "file-saver";
+
 import "react-image-gallery/styles/css/image-gallery.css";
 
+const PHONE_NUMBER = "02903 650140";
+const PROFILE_URL = "https://www.pvps.vn";
+const EMAIL = "info@pvps.vn";
+
+
+
+
+const skills = [
+  {
+    name: "Angular",
+  },
+  {
+    name: "TypeScript",
+  },
+  {
+    name: "JavaScript",
+  },
+  {
+    name: "NodeJS",
+  },
+];
+
+const achievements = [
+  {
+    issuer: "Oracle",
+    name: "Oracle Certified Expert",
+  },
+];
+class DocumentCreator {
+  create([employees, workOrderInfo, skills, achivements]) {
+    const document = new Document();
+
+    document.addSection({
+      children: [
+        new Paragraph({
+          text: "BIÊN BẢN BÀN GIAO CÔNG CỤ DỤNG CỤ",
+          heading: HeadingLevel.HEADING_1,
+          alignment: AlignmentType.CENTER
+        }),
+        this.createContactInfo(PHONE_NUMBER, PROFILE_URL, EMAIL),
+        this.createHeading("Thông tin Work Order:"),
+        ...workOrderInfo
+          .map((wo) => {
+            const arr = [];
+            arr.push(
+              this.createInstitutionHeader(`WO: ${wo.WO}`, `PCT: ${wo.PCT}`),
+            );
+            arr.push(this.createRoleText(`Chỉ huy trực tiếp: ${wo.CHTT}`));
+            return arr;
+          })
+          .reduce((prev, curr) => prev.concat(curr), []),
+
+        this.createHeading("Nhân viên nhóm công tác"),
+        ...employees
+          .map((position) => {
+            const arr = [];
+            arr.push(this.createTable("aaaa"));
+            arr.push(
+              this.createInstitutionHeader(
+                position.company.name,
+                this.createPositionDateText(position.startDate, position.endDate, position.isCurrent),
+              ),
+            );
+            arr.push(this.createRoleText(position.title));
+
+            const bulletPoints = this.splitParagraphIntoBullets(position.summary);
+
+            bulletPoints.forEach((bulletPoint) => {
+              arr.push(this.createBullet(bulletPoint));
+            });
+
+            return arr;
+          })
+          .reduce((prev, curr) => prev.concat(curr), []),
+        this.createHeading("Skills, Achievements and Interests"),
+        this.createSubHeading("Skills"),
+        this.createSkillList(skills),
+        this.createSubHeading("Achievements"),
+        ...this.createAchivementsList(achivements),
+        this.createSubHeading("Interests"),
+        this.createInterests("Programming, Technology, Music Production, Web Design, 3D Modelling, Dancing."),
+        this.createHeading("References"),
+        new Paragraph(
+          "Dr. Dean Mohamedally Director of Postgraduate Studies Department of Computer Science, University College London Malet Place, Bloomsbury, London WC1E d.mohamedally@ucl.ac.uk",
+        ),
+        new Paragraph("More references upon request"),
+        new Paragraph({
+          text: "This CV was generated in real-time based on my Linked-In profile from my personal website www.dolan.bio.",
+          alignment: AlignmentType.CENTER,
+        }),
+      ],
+    });
+
+    return document;
+  }
+
+  createContactInfo(phoneNumber, profileUrl, email) {
+    return new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [
+        new TextRun(`Phone: ${phoneNumber} | Website: ${profileUrl} | Email: ${email}`),
+        new TextRun("Address: Khanh An commune, U Minh dis., Ca Mau province ").break(),
+      ],
+    });
+  }
+
+  createHeading(text) {
+    return new Paragraph({
+      text: text,
+      heading: HeadingLevel.HEADING_3,
+      thematicBreak: true,
+    });
+  }
+
+  createSubHeading(text) {
+    return new Paragraph({
+      text: text,
+      heading: HeadingLevel.HEADING_2,
+    });
+  }
+
+  createInstitutionHeader(institutionName, dateText) {
+    return new Paragraph({
+      tabStops: [
+        {
+          type: TabStopType.RIGHT,
+          position: TabStopPosition.MAX,
+        },
+      ],
+      children: [
+        new TextRun({
+          text: institutionName,
+          bold: true,
+        }),
+        new TextRun({
+          text: `\t${dateText}`,
+          bold: true,
+        }),
+      ],
+    });
+  }
+
+  createRoleText(roleText) {
+    return new Paragraph({
+      children: [
+        new TextRun({
+          text: roleText,
+          italics: true,
+        }),
+      ],
+    });
+  }
+
+  createBullet(text) {
+    return new Paragraph({
+      text: text,
+      bullet: {
+        level: 0,
+      },
+    });
+  }
+
+  // tslint:disable-next-line:no-any
+  createSkillList(skills) {
+    return new Paragraph({
+      children: [new TextRun(skills.map((skill) => skill.name).join(", ") + ".")],
+    });
+  }
+
+  // tslint:disable-next-line:no-any
+  createAchivementsList(achivements) {
+    return achivements.map(
+      (achievement) =>
+        new Paragraph({
+          text: achievement.name,
+          bullet: {
+            level: 0,
+          },
+        }),
+    );
+  }
+
+  createInterests(interests) {
+    return new Paragraph({
+      children: [new TextRun(interests)],
+    });
+  }
+
+  splitParagraphIntoBullets(text) {
+    return text.split("\n\n");
+  }
+
+  // tslint:disable-next-line:no-any
+  createPositionDateText(startDate, endDate, isCurrent) {
+    const startDateText = this.getMonthFromInt(startDate.month) + ". " + startDate.year;
+    const endDateText = isCurrent ? "Present" : `${this.getMonthFromInt(endDate.month)}. ${endDate.year}`;
+
+    return `${startDateText} - ${endDateText}`;
+  }
+
+  createTable(data) {
+    return new TableD({
+      rows: [
+        new TableRowD({
+          children: [
+            new TableCellD({
+              children: [new Paragraph("sdfdsf")]
+            }),
+            new TableCellD({
+              children: [new Paragraph("sdfdsf")]
+            }),
+
+          ]
+        }),
+        new TableRowD({
+          children: [
+            new TableCellD({
+              children: [new Paragraph("sdfdsf")]
+            }),
+            new TableCellD({
+              children: [new Paragraph("sdfdsf")]
+            }),
+          ]
+        }),
+      ]
+    })
+  }
+  getMonthFromInt(value) {
+    switch (value) {
+      case 1:
+        return "Jan";
+      case 2:
+        return "Feb";
+      case 3:
+        return "Mar";
+      case 4:
+        return "Apr";
+      case 5:
+        return "May";
+      case 6:
+        return "Jun";
+      case 7:
+        return "Jul";
+      case 8:
+        return "Aug";
+      case 9:
+        return "Sept";
+      case 10:
+        return "Oct";
+      case 11:
+        return "Nov";
+      case 12:
+        return "Dec";
+      default:
+        return "N/A";
+    }
+  }
+}
 
 class OrderDetail extends Component {
   constructor(props) {
@@ -56,6 +316,96 @@ class OrderDetail extends Component {
       ]
     }
   }
+
+  generateDox = () => {
+    const { order } = this.props;
+    const employees = [
+      {
+        isCurrent: true,
+        summary: "Full-stack developer working with Angular and Java. Working for the iShares platform",
+        title: "Associate Software Developer",
+        startDate: {
+          month: 11,
+          year: 2017,
+        },
+        company: {
+          name: "BlackRock",
+        },
+      },
+      {
+        isCurrent: false,
+        summary:
+          "Full-stack developer working with Angular, Node and TypeScript. Working for the iShares platform. Emphasis on Dev-ops and developing the continous integration pipeline.",
+        title: "Software Developer",
+        endDate: {
+          month: 11,
+          year: 2017,
+        },
+        startDate: {
+          month: 10,
+          year: 2016,
+        },
+        company: {
+          name: "Torch Markets",
+        },
+      },
+      {
+        isCurrent: false,
+        summary:
+          "Used ASP.NET MVC 5 to produce a diversity data collection tool for the future of British television.\n\nUsed AngularJS and C# best practices. Technologies used include JavaScript, ASP.NET MVC 5, SQL, Oracle, SASS, Bootstrap, Grunt.",
+        title: "Software Developer",
+        endDate: {
+          month: 10,
+          year: 2016,
+        },
+        startDate: {
+          month: 3,
+          year: 2015,
+        },
+        company: {
+          name: "Soundmouse",
+        },
+      },
+      {
+        isCurrent: false,
+        summary:
+          "Develop web commerce platforms for constious high profile clients.\n\nCreated a log analysis web application with the Play Framework in Java, incorporating Test Driven Development. It asynchronously uploads and processes large (2 GB) log files, and outputs meaningful results in context with the problem. \n\nAnalysis  and  development  of  the payment system infrastructure and user accounts section to be used by several clients of the company such as Waitrose, Tally Weijl, DJ Sports, Debenhams, Ann Summers, John Lewis and others.\n\nTechnologies used include WebSphere Commerce, Java, JavaScript and JSP.",
+        title: "Java Developer",
+        endDate: {
+          month: 10,
+          year: 2014,
+        },
+        startDate: {
+          month: 3,
+          year: 2013,
+        },
+        company: {
+          name: "Soundmouse",
+        },
+      },
+    ];
+    const workOrderInfo = [
+      {
+        WO: order.WO,
+        PCT: order.PCT,
+        CHTT: order.userId.name,
+      },
+    ];
+    const documentCreator = new DocumentCreator();
+    const doc = documentCreator.create([
+      employees,
+      workOrderInfo,
+      skills,
+      achievements
+    ]);
+
+    Packer.toBlob(doc).then(blob => {
+      console.log(blob);
+      saveAs(blob, "example.docx");
+      console.log("Document created successfully");
+    });
+  }
+
   componentDidMount() {
     const { orderActionCreator, customerActionCreator, match: { params } } = this.props;
     const { getIdOrder } = orderActionCreator;
@@ -160,7 +510,7 @@ class OrderDetail extends Component {
   groupButtonActions = () => {
     const { order, user } = this.props
     if (!order.userId) return <></>;
-    else if (order.status === 'START' && user._id === order.userId._id && order.toolId.length === 0){
+    else if (order.status === 'START' && user._id === order.userId._id && order.toolId.length === 0) {
       return <Button variant="contained" color="primary" onClick={() => { this.onClickVerify(order) }}>Lấy PCT Không Tool</Button>;
     }
     switch (order.status) {
@@ -307,6 +657,9 @@ class OrderDetail extends Component {
                   />
                 </Grid>
                 <div className={classes.boxActions}>
+                  <Button className={this.classAddTool(order)} variant="contained" color="secondary" onClick={() => this.generateDox(order)}>
+                    IN PHIẾU
+                  </Button> &nbsp;
                   <Button className={this.classAddTool(order)} variant="contained" color="primary" onClick={() => { this.onClickAddTool('/admin/tool/' + order._id) }}>
                     Thêm tool
                   </Button>
