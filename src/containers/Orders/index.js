@@ -82,7 +82,8 @@ class Orders extends Component {
                     <Edit color="primary" />
                   </Fab>
                   &nbsp;&nbsp;
-                  <Fab
+                  
+                  {/* <Fab
                     color="default"
                     aria-label="Xóa WO"
                     size='small'
@@ -91,7 +92,7 @@ class Orders extends Component {
                     }}
                     >
                     <DeleteForever color="error" fontSize="small" />
-                  </Fab>
+                  </Fab> */}
                 </> : <></>
               }
             </>
