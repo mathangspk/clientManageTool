@@ -126,12 +126,17 @@ class OrderDetail extends Component {
   onClickVerify = (data) => {
     const { orderActionCreator, user } = this.props;
     const { updateOrder } = orderActionCreator;
-    const newOrder = JSON.parse(JSON.stringify(data))
+    const newOrder = JSON.parse(JSON.stringify(data));
+    const haveToolInList = data.toolId;
     switch (newOrder.status) {
       case 'START':
         if (user.admin) {
           newOrder.status = 'READY'
-        } else {
+        }
+        else if (haveToolInList.length === 0) {
+          newOrder.status = 'COMPLETE'
+        }
+        else {
           newOrder.status = 'READY'
         }
         break;
@@ -154,7 +159,10 @@ class OrderDetail extends Component {
   };
   groupButtonActions = () => {
     const { order, user } = this.props
-    if (!order.userId || order.toolId.length === 0) return <></>;
+    if (!order.userId) return <></>;
+    else if (order.status === 'START' && user._id === order.userId._id && order.toolId.length === 0){
+      return <Button variant="contained" color="primary" onClick={() => { this.onClickVerify(order) }}>Lấy PCT Không Tool</Button>;
+    }
     switch (order.status) {
       case 'START':
         if (user._id !== order.userId._id) return <></>
@@ -327,7 +335,7 @@ class OrderDetail extends Component {
                 <div>Hình ảnh:</div>
                 {
                   (currentIdTool.images || []).length === 0 ? <></>
-                  : <ImageGallery items={this.getImage(currentIdTool.images)} />
+                    : <ImageGallery items={this.getImage(currentIdTool.images)} />
                 }
               </div>
             </Grid>
