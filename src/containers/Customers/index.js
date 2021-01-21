@@ -5,7 +5,7 @@ import * as customerActions from '../../actions/customerActions';
 import * as modalActions from '../../actions/modal';
 import { bindActionCreators, compose } from 'redux';
 import CustomerForm from '../CustomerForm';
-import { withStyles, Fab, Grid, TextField } from '@material-ui/core';
+import { withStyles, Fab, Grid, TextField, FormControl, InputLabel, Select } from '@material-ui/core';
 import { DeleteForever, Edit } from '@material-ui/icons';
 import DataTable from 'react-data-table-component';
 import styles from './style';
@@ -22,7 +22,8 @@ class Customers extends Component {
         name: '',
         phone: '',
         department: '',
-        group: ''
+        group: '',
+        permit: ''
       },
       columnsGrid: [
         {
@@ -124,7 +125,7 @@ class Customers extends Component {
 
   render() {
     const { customers, classes, user } = this.props;
-    const { columnsGrid, rowPerPage } = this.state;
+    const { columnsGrid, rowPerPage, dataSearch } = this.state;
     return (
       <Fragment>
         <div className={classes.content}>
@@ -184,6 +185,24 @@ class Customers extends Component {
                       onInput={this.handleSearch}
                     />
                   </div>
+                  <div className="field-search">
+                    <FormControl fullWidth variant="filled">
+                      <InputLabel htmlFor="permit">PHÂN QUYỀN</InputLabel>
+                      <Select
+                        fullWidth
+                        native
+                        value={dataSearch.permit}
+                        onChange={this.handleSearch}
+                        inputProps={{
+                          name: 'permit',
+                          id: 'permit',
+                        }}
+                      >
+                        <option value={false}>USER</option>
+                        <option value={true}>ADMIN</option>
+                      </Select>
+                    </FormControl>
+                  </div>
                 </div>
                 <Grid className={classes.dataTable}>
                   <DataTable
@@ -217,7 +236,8 @@ class Customers extends Component {
         t.name.toLowerCase().indexOf(dataSearch.name.toLowerCase()) > -1 &&
         (t.phone + '').toLowerCase().indexOf((dataSearch.phone + '').toLowerCase()) > -1 &&
         t.department.toLowerCase().indexOf(dataSearch.department.toLowerCase()) > -1 &&
-        t.group.toLowerCase().indexOf(dataSearch.group.toLowerCase()) > -1
+        t.group.toLowerCase().indexOf(dataSearch.group.toLowerCase()) > -1 &&
+        String(t.admin).indexOf(dataSearch.permit) > -1
       )));
     }
     return _customers;
