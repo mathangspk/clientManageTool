@@ -16,7 +16,7 @@ import moment from 'moment';
 import { popupConfirm } from '../../actions/ui';
 import ImageGallery from 'react-image-gallery';
 import { Multiselect } from 'multiselect-react-dropdown';
-import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TabStopPosition, TabStopType, TextRun, Table as TableD, TableCell as TableCellD, TableRow as TableRowD, WidthType, convertInchesToTwip } from 'docx';
+import { AlignmentType, Document, BorderStyle, HeadingLevel, Packer, Paragraph, TabStopPosition, TabStopType, TextRun, Table as TableD, TableCell as TableCellD, TableRow as TableRowD, WidthType, convertInchesToTwip } from 'docx';
 import { saveAs } from "file-saver";
 
 import "react-image-gallery/styles/css/image-gallery.css";
@@ -50,7 +50,7 @@ const achievements = [
   },
 ];
 class DocumentCreator {
-  create([employees, workOrderInfo, skills, achivements]) {
+  create([employees, workOrderInfo, listTool, achivements]) {
     const document = new Document();
 
     document.addSection({
@@ -61,6 +61,7 @@ class DocumentCreator {
           alignment: AlignmentType.CENTER
         }),
         this.createContactInfo(PHONE_NUMBER, PROFILE_URL, EMAIL),
+        new Paragraph("\n"),
         this.createHeading("Thông tin Work Order:"),
         ...workOrderInfo
           .map((wo) => {
@@ -72,45 +73,48 @@ class DocumentCreator {
             return arr;
           })
           .reduce((prev, curr) => prev.concat(curr), []),
-
+        new Paragraph("\n"),
         this.createHeading("Nhân viên nhóm công tác"),
+        new Paragraph("\n"),
+        this.createHeaderTable("STT", "HỌ VÀ TÊN"),
+
         ...employees
-          .map((position) => {
+          .map((nv) => {
             const arr = [];
-            arr.push(this.createTable("aaaa"));
-            arr.push(
-              this.createInstitutionHeader(
-                position.company.name,
-                this.createPositionDateText(position.startDate, position.endDate, position.isCurrent),
-              ),
-            );
-            arr.push(this.createRoleText(position.title));
-
-            const bulletPoints = this.splitParagraphIntoBullets(position.summary);
-
-            bulletPoints.forEach((bulletPoint) => {
-              arr.push(this.createBullet(bulletPoint));
-            });
-
+            arr.push(this.createContentTable(nv));
             return arr;
           })
           .reduce((prev, curr) => prev.concat(curr), []),
-        this.createHeading("Skills, Achievements and Interests"),
-        this.createSubHeading("Skills"),
-        this.createSkillList(skills),
-        this.createSubHeading("Achievements"),
-        ...this.createAchivementsList(achivements),
-        this.createSubHeading("Interests"),
-        this.createInterests("Programming, Technology, Music Production, Web Design, 3D Modelling, Dancing."),
-        this.createHeading("References"),
-        new Paragraph(
-          "Dr. Dean Mohamedally Director of Postgraduate Studies Department of Computer Science, University College London Malet Place, Bloomsbury, London WC1E d.mohamedally@ucl.ac.uk",
-        ),
-        new Paragraph("More references upon request"),
-        new Paragraph({
-          text: "This CV was generated in real-time based on my Linked-In profile from my personal website www.dolan.bio.",
-          alignment: AlignmentType.CENTER,
-        }),
+        new Paragraph("\n"),
+        this.createHeading("Danh sách Công cụ dụng cụ mượn"),
+        new Paragraph("\n"),
+        this.createHeaderTable("STT", "TÊN CÔNG CỤ"),
+
+        ...listTool
+          .map((tool) => {
+            const arr = [];
+            arr.push(this.createContentTable(tool));
+            return arr;
+          }).reduce((prev, curr) => prev.concat(curr), []),
+          new Paragraph("\n"),new Paragraph("\n"),new Paragraph("\n"),
+          //this.createInstitutionHeader("", "Ngày....tháng....năm......."),
+          this.createInstitutionHeader("Bên Giao", "Bên nhận"),
+        
+        // this.createSubHeading("Skills"),
+        // this.createSkillList(skills),
+        // this.createSubHeading("Achievements"),
+        // ...this.createAchivementsList(achivements),
+        // this.createSubHeading("Interests"),
+        // this.createInterests("Programming, Technology, Music Production, Web Design, 3D Modelling, Dancing."),
+        // this.createHeading("References"),
+        // new Paragraph(
+        //   "Dr. Dean Mohamedally Director of Postgraduate Studies Department of Computer Science, University College London Malet Place, Bloomsbury, London WC1E d.mohamedally@ucl.ac.uk",
+        // ),
+        // new Paragraph("More references upon request"),
+        // new Paragraph({
+        //   text: "This CV was generated in real-time based on my Linked-In profile from my personal website www.dolan.bio.",
+        //   alignment: AlignmentType.CENTER,
+        // }),
       ],
     });
 
@@ -220,45 +224,72 @@ class DocumentCreator {
 
     return `${startDateText} - ${endDateText}`;
   }
+  createTableCell(data) {
+    return new TableCellD({
+      children: [new Paragraph({
+        text: data,
+        alignment: AlignmentType.CENTER
+      })]
+    })
+  }
+  createTableRow(data) {
+    return new TableRowD({
+      children: [
+        this.createTableCell(String(data.stt)),
+        this.createTableCell(data.name)
+      ],
+    })
+  }
 
-  createTable(data) {
+  createContentTable(data) {
     return new TableD({
-      alignment: AlignmentType.CENTER,
+
       rows: [
-          new TableRowD({
-              children: [
-                  new TableCellD({
-                      children: [new Paragraph("World")],
-                      margins: {
-                          top: 5,
-                          bottom: 5,
-                          left: 5,
-                          right: 5,
-                      },
-                      columnSpan: 3,
-                  }),
-              ],
-          }),
-          new TableRowD({
-              children: [
-                  new TableCellD({
-                      children: [],
-                  }),
-                  new TableCellD({
-                      children: [],
-                  }),
-                  new TableCellD({
-                      children: [],
-                  }),
-              ],
-          }),
+        this.createTableRow(data)
       ],
       width: {
-          size: 200,
-          type: WidthType.AUTO,
+        size: 200,
+        type: WidthType.AUTO,
       },
       columnWidths: [10, 10, 10],
-  });
+    });
+  }
+  createHeaderTable(firstCol, secondCol) {
+    return new TableD({
+
+      rows: [
+        new TableRowD({
+          tableHeader: true,
+          children: [
+            new TableCellD({
+              children: [new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new TextRun({
+                  text: `${firstCol}`,
+                  bold: true,
+                  size: 16
+                })]
+              })], columnSpan: 1,
+            }),
+            new TableCellD({
+              children: [new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new TextRun({
+                  text: `${secondCol}`,
+                  bold: true,
+                  size: 16
+                })]
+              })], columnSpan: 1,
+            })
+          ],
+        })
+      ],
+      width: {
+        size: 200,
+        type: WidthType.AUTO,
+      },
+      columnWidths: [10, 10, 10],
+    });
   }
   getMonthFromInt(value) {
     switch (value) {
@@ -331,71 +362,25 @@ class OrderDetail extends Component {
 
   generateDox = () => {
     const { order } = this.props;
-    const employees = [
-      {
-        isCurrent: true,
-        summary: "Full-stack developer working with Angular and Java. Working for the iShares platform",
-        title: "Associate Software Developer",
-        startDate: {
-          month: 11,
-          year: 2017,
-        },
-        company: {
-          name: "BlackRock",
-        },
-      },
-      {
-        isCurrent: false,
-        summary:
-          "Full-stack developer working with Angular, Node and TypeScript. Working for the iShares platform. Emphasis on Dev-ops and developing the continous integration pipeline.",
-        title: "Software Developer",
-        endDate: {
-          month: 11,
-          year: 2017,
-        },
-        startDate: {
-          month: 10,
-          year: 2016,
-        },
-        company: {
-          name: "Torch Markets",
-        },
-      },
-      {
-        isCurrent: false,
-        summary:
-          "Used ASP.NET MVC 5 to produce a diversity data collection tool for the future of British television.\n\nUsed AngularJS and C# best practices. Technologies used include JavaScript, ASP.NET MVC 5, SQL, Oracle, SASS, Bootstrap, Grunt.",
-        title: "Software Developer",
-        endDate: {
-          month: 10,
-          year: 2016,
-        },
-        startDate: {
-          month: 3,
-          year: 2015,
-        },
-        company: {
-          name: "Soundmouse",
-        },
-      },
-      {
-        isCurrent: false,
-        summary:
-          "Develop web commerce platforms for constious high profile clients.\n\nCreated a log analysis web application with the Play Framework in Java, incorporating Test Driven Development. It asynchronously uploads and processes large (2 GB) log files, and outputs meaningful results in context with the problem. \n\nAnalysis  and  development  of  the payment system infrastructure and user accounts section to be used by several clients of the company such as Waitrose, Tally Weijl, DJ Sports, Debenhams, Ann Summers, John Lewis and others.\n\nTechnologies used include WebSphere Commerce, Java, JavaScript and JSP.",
-        title: "Java Developer",
-        endDate: {
-          month: 10,
-          year: 2014,
-        },
-        startDate: {
-          month: 3,
-          year: 2013,
-        },
-        company: {
-          name: "Soundmouse",
-        },
-      },
-    ];
+    const nv = order.NV;
+    const employees = [];
+    var index = 1;
+    nv.forEach(element => {
+      employees.push({
+        stt: index++,
+        name: element.name
+      })
+    });
+
+    const tool = order.toolId;
+    const listTool = [];
+    var indexT = 1;
+    tool.forEach(element => {
+      listTool.push({
+        stt: indexT++,
+        name: element.name
+      })
+    })
     const workOrderInfo = [
       {
         WO: order.WO,
@@ -407,7 +392,7 @@ class OrderDetail extends Component {
     const doc = documentCreator.create([
       employees,
       workOrderInfo,
-      skills,
+      listTool,
       achievements
     ]);
 
