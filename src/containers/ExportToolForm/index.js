@@ -42,20 +42,22 @@ class ExportToolForm extends Component {
         if (res.data.Status.StatusCode === 200) {
           let data = JSON.parse(JSON.stringify(res.data.Data.Row.filter(order => order.status === 'COMPLETE')))
           let lstTool = _.flattenDeep(data.map(row => row.toolId));
-          let lstTypeTool = _.uniq(lstTool.map(tool => tool.type));
+          // let lstTypeTool = _.uniq(lstTool.map(tool => tool.type));
+          let lstTypeTool = _.uniq(lstTool.map(tool => tool.name));
           let dataTable = [
             ['REPORT TOOL','',''],
             ['','',''],
             ['From', moment(startDate).format('DD/MM/YYYY'), ''],
             ['To', moment(endDate).format('DD/MM/YYYY'), ''],
             ['','',''],
-            ['STT', 'TOOL NAME (TYPE', 'Số lần mượn']
+            ['STT', 'Tên công cụ dụng cụ', 'Số lần mượn']
           ]
           for (let i = 0; i < lstTypeTool.length; i++) {
             let tmp = [
               i + 1,
               lstTypeTool[i],
-              lstTool.filter(tool => tool.type === lstTypeTool[i]).length
+              // lstTool.filter(tool => tool.type === lstTypeTool[i]).length
+              lstTool.filter(tool => tool.name === lstTypeTool[i]).length
             ]
             dataTable.push(tmp)
           }

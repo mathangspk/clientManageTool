@@ -16,7 +16,7 @@ import moment from 'moment';
 import { popupConfirm } from '../../actions/ui';
 import ImageGallery from 'react-image-gallery';
 import { Multiselect } from 'multiselect-react-dropdown';
-import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TabStopPosition, TabStopType, TextRun, Table as TableD, TableCell as TableCellD, TableRow as TableRowD } from 'docx';
+import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TabStopPosition, TabStopType, TextRun, Table as TableD, TableCell as TableCellD, TableRow as TableRowD, WidthType, convertInchesToTwip } from 'docx';
 import { saveAs } from "file-saver";
 
 import "react-image-gallery/styles/css/image-gallery.css";
@@ -223,30 +223,42 @@ class DocumentCreator {
 
   createTable(data) {
     return new TableD({
+      alignment: AlignmentType.CENTER,
       rows: [
-        new TableRowD({
-          children: [
-            new TableCellD({
-              children: [new Paragraph("sdfdsf")]
-            }),
-            new TableCellD({
-              children: [new Paragraph("sdfdsf")]
-            }),
-
-          ]
-        }),
-        new TableRowD({
-          children: [
-            new TableCellD({
-              children: [new Paragraph("sdfdsf")]
-            }),
-            new TableCellD({
-              children: [new Paragraph("sdfdsf")]
-            }),
-          ]
-        }),
-      ]
-    })
+          new TableRowD({
+              children: [
+                  new TableCellD({
+                      children: [new Paragraph("World")],
+                      margins: {
+                          top: 5,
+                          bottom: 5,
+                          left: 5,
+                          right: 5,
+                      },
+                      columnSpan: 3,
+                  }),
+              ],
+          }),
+          new TableRowD({
+              children: [
+                  new TableCellD({
+                      children: [],
+                  }),
+                  new TableCellD({
+                      children: [],
+                  }),
+                  new TableCellD({
+                      children: [],
+                  }),
+              ],
+          }),
+      ],
+      width: {
+          size: 200,
+          type: WidthType.AUTO,
+      },
+      columnWidths: [10, 10, 10],
+  });
   }
   getMonthFromInt(value) {
     switch (value) {
