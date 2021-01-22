@@ -56,7 +56,7 @@ class Customers extends Component {
                 <Edit color="primary" />
               </Fab>
               &nbsp;&nbsp;
-              <Fab
+              {/* <Fab
                 color="default"
                 aria-label="Delete"
                 size='small'
@@ -65,7 +65,7 @@ class Customers extends Component {
                 }}
               >
                 <DeleteForever color="error" fontSize="small" />
-              </Fab>
+              </Fab> */}
             </>
           }
         }
