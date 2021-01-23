@@ -26,31 +26,8 @@ const PROFILE_URL = "https://www.pvps.vn";
 const EMAIL = "info@pvps.vn";
 
 
-
-
-const skills = [
-  {
-    name: "Angular",
-  },
-  {
-    name: "TypeScript",
-  },
-  {
-    name: "JavaScript",
-  },
-  {
-    name: "NodeJS",
-  },
-];
-
-const achievements = [
-  {
-    issuer: "Oracle",
-    name: "Oracle Certified Expert",
-  },
-];
 class DocumentCreator {
-  create([employees, workOrderInfo, listTool, achivements]) {
+  create([employees, workOrderInfo, listTool]) {
     const document = new Document();
 
     document.addSection({
@@ -392,8 +369,7 @@ class OrderDetail extends Component {
     const doc = documentCreator.create([
       employees,
       workOrderInfo,
-      listTool,
-      achievements
+      listTool
     ]);
 
     Packer.toBlob(doc).then(blob => {
@@ -446,7 +422,10 @@ class OrderDetail extends Component {
         const { updateTool } = toolActionCreator;
         const newOrder = JSON.parse(JSON.stringify(order));
         const newTool = JSON.parse(JSON.stringify(data));
-        let indexTool = newOrder.toolId.indexOf(data._id);
+        let indexTool = newOrder.toolId.findIndex(function(item, i){
+          return item._id === data._id
+        });
+        //let indexTool = newOrder.toolId.indexOf(data._id);
         newOrder.toolId.splice(indexTool, 1);
         newTool.status = 1;
         if (currentIdTool._id === data._id) {
