@@ -88,6 +88,27 @@ const style = (theme) => ({
         '& .rdt_TableRow:last-child': {
           borderBottom: '1px solid rgba(0,0,0,.12)'
         }
+      },
+    
+    },
+    '& .lb-status': {
+      width: '90px',
+      textAlign: 'center',
+      color: '#fff',
+      fontWeight: 'bold',
+      padding: '5px',
+      borderRadius: '4px',
+      '&.color-ready': {
+        backgroundColor: '#3949ab'
+      },
+      '&.color-in-use': {
+        backgroundColor: '#28a745'
+      },
+      '&.color-bad': {
+        backgroundColor: '#dc3545'
+      },
+      '&.color-lost': {
+        backgroundColor: '#343a40'
       }
     },
   },

@@ -34,40 +34,6 @@ class Tools extends Component {
         status: "all"
       },
       columnsGrid: [
-        { selector: 'name', name: 'Tên công cụ', minWidth: '250px', sortable: true },
-        { selector: 'manufacturer', name: 'Hãng', minWidth: '250px', sortable: true },
-        { selector: 'type', name: 'Loại', minWidth: '250px', sortable: true },
-        { selector: 'woName', name: 'Work Order', width: '120px', sortable: true },
-        { selector: 'userName', name: 'Người dùng', width: '200px', sortable: true },
-        {
-          selector: 'status', name: 'Trạng thái', width: '150px', sortable: true,
-          cell: (param) => {
-            let status = 'READY'
-            let className = 'ready'
-            switch (param.status + "") {
-              case "1":
-                status = 'READY';
-                className = 'ready';
-                break;
-              case "2":
-                status = 'IN USE';
-                className = 'in-use';
-                break;
-              case "3":
-                status = 'BAD'
-                className = 'bad';
-                break;
-              case "4":
-                status = 'LOST';
-                className = 'lost';
-                break;
-              default:
-                status = 'READY'
-                break;
-            }
-            return <div className={'lb-status color-' + className}>{status}</div>;
-          }
-        },
         {
           name: 'Hành động', width: '120px',
           cell: (param) => {
@@ -90,7 +56,7 @@ class Tools extends Component {
                               this.onClickWorkOrder(data)
                             }}
                           >
-                            <Remove color="error" fontSize="small" />
+                            <DeleteForever color="error" fontSize="small" />
                           </Fab>
                           : (
                             data.status === 1 ?
@@ -143,7 +109,43 @@ class Tools extends Component {
               }
             </>
           }
-        }
+        },
+        { selector: 'name', name: 'Tên công cụ', minWidth: '100px', maxWidth: '300px', sortable: true },
+        {
+          selector: 'status', name: 'Trạng thái', width: '150px', sortable: true, center: true,
+          cell: (param) => {
+            let status = 'READY'
+            let className = 'ready'
+            switch (param.status + "") {
+              case "1":
+                status = 'READY';
+                className = 'ready';
+                break;
+              case "2":
+                status = 'IN USE';
+                className = 'in-use';
+                break;
+              case "3":
+                status = 'BAD'
+                className = 'bad';
+                break;
+              case "4":
+                status = 'LOST';
+                className = 'lost';
+                break;
+              default:
+                status = 'READY'
+                break;
+            }
+            return <div className={'lb-status color-' + className}>{status}</div>;
+          }
+        },
+        { selector: 'manufacturer', name: 'Hãng', minWidth: '100px', maxWidth: '150px', sortable: true },
+        { selector: 'type', name: 'Loại', minWidth: '100px', maxWidth: '150px', sortable: true, allowOverflow: false, wrap: false },
+        { selector: 'woName', name: 'Work Order', width: '120px', sortable: true },
+        { selector: 'userName', name: 'Người dùng', width: '200px', sortable: true },
+
+
       ]
     }
   }
@@ -186,7 +188,7 @@ class Tools extends Component {
   }
   onClickWorkOrder = (tool) => {
     const { orderActionsCreator, toolActionCreator, order, user } = this.props;
-    if (order && !user.admin && user._id !== order.userId._id){
+    if (order && !user.admin && user._id !== order.userId._id) {
       window.location.href = '/admin/order'
       return
     }
@@ -205,10 +207,12 @@ class Tools extends Component {
     if (indexTool > -1) {
       lstTool.splice(indexTool, 1);
       newTool.status = 1;
+      newTool.wo = "";
       newTool.hasTool = false;
     } else {
       lstTool.unshift(tool._id);
       newTool.status = 2;
+      newTool.wo = newOrder.WO;
     }
     newOrder.toolId = lstTool
     newTool.woInfo = newOrder
@@ -257,7 +261,7 @@ class Tools extends Component {
     })
   }
   handleSearch = (event) => {
-    
+
     const { toolActionCreator } = this.props;
     const { dataSearch } = this.state;
     const { searchToolsSuccess } = toolActionCreator;
@@ -374,7 +378,7 @@ class Tools extends Component {
               <div>Hình ảnh:</div>
               {
                 (dataSelected.images || []).length === 0 ? <></>
-                : <ImageGallery className="field-gallery" items={this.getImage(dataSelected.images)} />
+                  : <ImageGallery className="field-gallery" items={this.getImage(dataSelected.images)} />
               }
             </div>
           </div>
@@ -440,7 +444,7 @@ class Tools extends Component {
     }
     if (dataSearch.userName && dataSearch.status == '2') {
       console.log(dataSearch.userName)
-      _tools = _tools.filter(t => 
+      _tools = _tools.filter(t =>
         this.removeVietnameseTones(t.woInfo[0].userInfo.name).toLowerCase().indexOf(dataSearch.userName.toLowerCase()) > -1
       )
     }
@@ -448,14 +452,18 @@ class Tools extends Component {
 
     _tools.forEach(t => {
       if (t.woInfo && t.woInfo.length > 0) {
-        let woInfo = t.woInfo.filter(wo => wo.status !== 'COMPLETE');
-        if (woInfo.length > 0) {
-          t.woName  = woInfo[0].WO;
-          t.userName = woInfo[0].userInfo.name
+        let woInfo = t.woInfo.filter(wo => (wo.status !== "COMPLETE"));
+        if (woInfo.length > 0 && t.status === 2) {
+          let showInfo = t.woInfo.filter(wo => (wo.WO === t.wo));
+          console.log(showInfo)
+          if (showInfo.length > 0) {
+            t.woName = showInfo[0].WO;
+            t.userName = showInfo[0].userInfo.name
+          }
         }
       }
     })
-    
+
     return _tools;
   }
 }

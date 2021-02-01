@@ -57,6 +57,7 @@ class OrderForm extends Component {
       timeStop,
       userId: user._id,
       status: 'START',
+      statusTool: 'START',
       content: content || ''
     }
     if (orderEditting) {
@@ -64,11 +65,13 @@ class OrderForm extends Component {
       newOrder.toolId = orderEditting.toolId
       newOrder.userId = orderEditting.userId
       newOrder.status = orderEditting.status
+      newOrder.statusTool = orderEditting.statusTool
       if (user.admin || newOrder.userId._id === user._id) {
         updateOrder(newOrder);
       }
     } else {
       newOrder.status = 'START'
+      newOrder.statusTool = 'START'
       addOrder(newOrder);
     }
   };

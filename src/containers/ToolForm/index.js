@@ -47,7 +47,8 @@ class ToolForm extends Component {
       quantity: 1,
       images,
       type,
-      status: statusSelected || 1
+      status: statusSelected || 1,
+      wo: "",
     }
     if (toolEditting) {
       updateTool(newTool);
@@ -267,7 +268,8 @@ const mapStateToProps = (state, ownProps) => {
         : null,
       manufacturer: state.tools.toolEditting ? state.tools.toolEditting.manufacturer : null,
       type: state.tools.toolEditting ? state.tools.toolEditting.type : null,
-      status: state.tools.toolEditting ? state.tools.toolEditting.status : null
+      status: state.tools.toolEditting ? state.tools.toolEditting.status : null,
+
     },
     msgError: state.error.msg,
     showModalStatus: state.modal.showModal,

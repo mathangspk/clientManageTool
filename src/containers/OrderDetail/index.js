@@ -8,7 +8,7 @@ import { bindActionCreators, compose } from 'redux';
 import styles from './style';
 import { Grid, withStyles, Fab, TextField, FormControl, Button, Table } from '@material-ui/core';
 import { Redirect } from "react-router-dom";
-import { DeleteForever, ArrowBackIos, Edit } from '@material-ui/icons';
+import { DeleteForever, ArrowBackIos, Edit, KeyboardReturn, Add } from '@material-ui/icons';
 import DataTable from 'react-data-table-component';
 import { API_ENDPOINT as URL } from '../../constants';
 import OrderForm from '../OrderForm';
@@ -73,10 +73,10 @@ class DocumentCreator {
             arr.push(this.createContentTable(tool));
             return arr;
           }).reduce((prev, curr) => prev.concat(curr), []),
-          new Paragraph("\n"),new Paragraph("\n"),new Paragraph("\n"),
-          //this.createInstitutionHeader("", "Ngày....tháng....năm......."),
-          this.createInstitutionHeader("Bên Giao", "Bên nhận"),
-        
+        new Paragraph("\n"), new Paragraph("\n"), new Paragraph("\n"),
+        //this.createInstitutionHeader("", "Ngày....tháng....năm......."),
+        this.createInstitutionHeader("Bên Giao", "Bên nhận"),
+
         // this.createSubHeading("Skills"),
         // this.createSkillList(skills),
         // this.createSubHeading("Achievements"),
@@ -309,30 +309,119 @@ class OrderDetail extends Component {
       urlRedirect: '',
       currentIdTool: {},
       isChange: false,
+      orderAction: true,
       columnsGrid: [
-        { selector: 'name', name: 'Tên công cụ', width: 'calc((100% - 100px) / 3)', sortable: true },
-        { selector: 'manufacturer', name: 'Hãng', width: 'calc((100% - 100px) / 3)', sortable: true },
-        { selector: 'type', name: 'Loại', width: 'calc((100% - 100px) / 3)', sortable: true },
+        { selector: 'name', name: 'Tên công cụ', width: '100% - 300px', sortable: true },
+        {
+          selector: 'status', name: 'Trạng thái', width: '150px', sortable: true,
+          cell: (param) => {
+            let { order } = this.props;
+            //if (!order.isAction) return <></>
+            let status = 'READY'
+            let className = 'ready'
+            switch (param.status + "") {
+              case "1":
+                status = 'RETURNED';
+                className = 'ready';
+                break;
+              case "2":
+                status = 'IN USE';
+                className = 'in-use';
+                break;
+              case "3":
+                status = 'BAD'
+                className = 'bad';
+                break;
+              case "4":
+                status = 'LOST';
+                className = 'lost';
+                break;
+              default:
+                status = 'READY'
+                break;
+            }
+            return <div className={'lb-status color-' + className}>{status}</div>;
+          }
+        },
+        // { selector: 'type', name: 'Loại', width: 'calc((100% - 100px) / 3)', sortable: true },
         {
           name: 'Hành động', width: '100px',
           cell: (params) => {
             let { order } = this.props;
             if (!order.isAction) return <></>
             let data = JSON.parse(JSON.stringify(params))
-            return <>
-              <Fab
-                color="default"
-                aria-label="Remove"
-                size='small'
-                onClick={() => {
-                  this.onClickRemoveTool(data)
-                }}
-              >
-                <DeleteForever color="error" fontSize="small" />
-              </Fab>
-            </>
+            if (order.status === "START") {
+              return <>
+                <Fab
+                  color="default"
+                  aria-label="Remove"
+                  size='small'
+                  onClick={() => {
+                    this.onClickRemoveTool(data)
+                  }}
+                >
+                  <DeleteForever color="error" fontSize="small" />
+                </Fab>
+              </>
+            }
+            if (order.status === "READY" || order.status === "IN PROGRESS") {
+              if (data.status === 1) {
+                return <>
+                  <Fab
+                    color="default"
+                    aria-label="Return"
+                    size='small'
+                    onClick={() => {
+                      this.onClickAddToolInList(data)
+                    }}
+                  >
+                    <Add color="blue" fontSize="small" />
+                  </Fab>
+            &nbsp;
+                  <Fab
+                    color="default"
+                    aria-label="Remove"
+                    size='small'
+                    onClick={() => {
+                      this.onClickRemoveTool(data)
+                    }}
+                  >
+                    <DeleteForever color="error" fontSize="small" />
+                  </Fab>
+                </>
+              }
+              if (data.status === 2) {
+                return <>
+                  <Fab
+                    color="default"
+                    aria-label="Return"
+                    size='small'
+                    onClick={() => {
+                      this.onClickReturnTool(data)
+                    }}
+                  >
+                    <KeyboardReturn color="blue" fontSize="small" />
+                  </Fab>
+            &nbsp;
+                  <Fab
+                    color="default"
+                    aria-label="Remove"
+                    size='small'
+                    onClick={() => {
+                      this.onClickRemoveTool(data)
+                    }}
+                  >
+                    <DeleteForever color="error" fontSize="small" />
+                  </Fab>
+                </>
+              }
+            }
           }
         }
+      ],
+      columnsGridComplete: [
+        { selector: 'name', name: 'Tên công cụ', width: '100% - 300px', sortable: true },
+        // { selector: 'type', name: 'Loại', width: 'calc((100% - 100px) / 3)', sortable: true },
       ]
     }
   }
@@ -380,7 +469,7 @@ class OrderDetail extends Component {
   }
 
   componentDidMount() {
-    const { orderActionCreator, customerActionCreator, match: { params } } = this.props;
+    const { orderActionCreator, customerActionCreator, match: { params }, order } = this.props;
     const { getIdOrder } = orderActionCreator;
     const { listAllCustomers } = customerActionCreator;
     getIdOrder(params.orderId);
@@ -422,12 +511,65 @@ class OrderDetail extends Component {
         const { updateTool } = toolActionCreator;
         const newOrder = JSON.parse(JSON.stringify(order));
         const newTool = JSON.parse(JSON.stringify(data));
-        let indexTool = newOrder.toolId.findIndex(function(item, i){
+        let indexTool = newOrder.toolId.findIndex(function (item, i) {
           return item._id === data._id
         });
         //let indexTool = newOrder.toolId.indexOf(data._id);
         newOrder.toolId.splice(indexTool, 1);
+        newTool.wo = "";
         newTool.status = 1;
+        if (currentIdTool._id === data._id) {
+          self.setState({ currentIdTool: {} });
+        }
+        updateOrder(newOrder);
+        updateTool(newTool);
+      }
+    })
+  }
+  onClickReturnTool = (data) => {
+    let self = this
+    popupConfirm({
+      title: 'Trả tool',
+      html: "Bạn muốn trả công cụ này về kho?",
+      ifOk: () => {
+        const { orderActionCreator, toolActionCreator, order } = self.props;
+        const { currentIdTool } = self.state;
+        const { updateOrder } = orderActionCreator;
+        const { updateTool } = toolActionCreator;
+        const newOrder = JSON.parse(JSON.stringify(order));
+        const newTool = JSON.parse(JSON.stringify(data));
+        let indexTool = newOrder.toolId.findIndex(function (item, i) {
+          return item._id === data._id
+        });
+        newTool.wo = "";
+        newTool.status = 1;
+        newOrder.toolId[indexTool].status = newTool.status;
+        if (currentIdTool._id === data._id) {
+          self.setState({ currentIdTool: {} });
+        }
+        updateOrder(newOrder);
+        updateTool(newTool);
+      }
+    })
+  }
+  onClickAddToolInList = (data) => {
+    let self = this
+    popupConfirm({
+      title: 'Mượn tool lại',
+      html: "Bạn muốn mượn lại công cụ này không?",
+      ifOk: () => {
+        const { orderActionCreator, toolActionCreator, order } = self.props;
+        const { currentIdTool } = self.state;
+        const { updateOrder } = orderActionCreator;
+        const { updateTool } = toolActionCreator;
+        const newOrder = JSON.parse(JSON.stringify(order));
+        const newTool = JSON.parse(JSON.stringify(data));
+        let indexTool = newOrder.toolId.findIndex(function (item, i) {
+          return item._id === data._id
+        });
+        newTool.wo = newOrder.WO;
+        newTool.status = 2;
+        newOrder.toolId[indexTool].status = newTool.status;
         if (currentIdTool._id === data._id) {
           self.setState({ currentIdTool: {} });
         }
@@ -458,22 +600,27 @@ class OrderDetail extends Component {
       case 'START':
         if (user.admin) {
           newOrder.status = 'READY'
+          newOrder.statusTool = 'READY'
         }
         else if (haveToolInList.length === 0) {
           newOrder.status = 'COMPLETE'
+          newOrder.statusTool = "COMPLETE"
         }
         else {
           newOrder.status = 'READY'
+          newOrder.statusTool = 'READY'
         }
         break;
       case 'READY':
         if (user.admin) {
           newOrder.status = 'IN PROGRESS'
+          newOrder.statusTool = 'IN PROGRESS'
         }
         break;
       case 'IN PROGRESS':
         if (user.admin) {
           newOrder.status = 'COMPLETE'
+          newOrder.statusTool = "COMPLETE"
         }
         break;
       case 'COMPLETE':
@@ -485,6 +632,11 @@ class OrderDetail extends Component {
   };
   groupButtonActions = () => {
     const { order, user } = this.props
+    let returnToolComplete = order.toolId.filter(tool => tool.status === 1)
+    let countToolId = order.toolId.length;
+    let toolComplete;
+    if(returnToolComplete.length === countToolId) toolComplete = true;
+    else toolComplete = false;
     if (!order.userId) return <></>;
     else if (order.status === 'START' && user._id === order.userId._id && order.toolId.length === 0) {
       return <Button variant="contained" color="primary" onClick={() => { this.onClickVerify(order) }}>Lấy PCT Không Tool</Button>;
@@ -500,7 +652,7 @@ class OrderDetail extends Component {
           return <></>;
         }
       case 'IN PROGRESS':
-        if (user.admin) {
+        if (user.admin && toolComplete) {
           return <Button variant="contained" color="primary" onClick={() => { this.onClickVerify(order) }}>Hoàn Thành</Button>;
         } else {
           return <></>;
@@ -564,7 +716,7 @@ class OrderDetail extends Component {
   }
   render() {
     const { classes, order, user, customers } = this.props
-    const { showRightPanel, columnsGrid, currentIdTool } = this.state
+    const { showRightPanel, columnsGrid, columnsGridComplete, currentIdTool, orderAction } = this.state
     return (
       <Fragment>
         <div className={classes.containerPanel}>
@@ -644,7 +796,7 @@ class OrderDetail extends Component {
                   <DataTable
                     noHeader={true}
                     keyField={'_id'}
-                    columns={columnsGrid}
+                    columns={order.isAction ? columnsGrid : columnsGridComplete}
                     data={this.genarateTools(order)}
                     striped={true}
                     pagination
@@ -678,7 +830,7 @@ class OrderDetail extends Component {
     if (!user && !user._id) return [];
     order.isAction = true
     if (!user.admin && order.userId && (order.status !== 'START' || user._id !== order.userId._id)) order.isAction = false;
-    if (order.status === 'COMPLETE') order.isAction = false;
+    if (order.status === 'COMPLETE') order.isAction = false
     if (order && order.toolId && order.toolId.length > 0 && order.toolId[0]._id) {
       return order.toolId
     }
@@ -694,6 +846,7 @@ const mapStateToProps = (state, ownProps) => {
       PCT: state.orders.order ? state.orders.order.PCT : '',
       date: state.orders.order ? state.orders.order.date : '',
       status: state.orders.order ? state.orders.order.status : '',
+      statusTool: state.orders.order ? state.orders.order.statusTool : '',
       timeStart: state.orders.order ? state.orders.order.timeStart : '',
       timeStop: state.orders.order ? state.orders.order.timeStop : '',
       toolId: state.orders.order ? state.orders.order.toolId : [],
@@ -702,7 +855,7 @@ const mapStateToProps = (state, ownProps) => {
       NV: state.orders.order ? state.orders.order.NV : [],
       note: state.orders.order ? state.orders.order.note : '',
       _id: state.orders.order ? state.orders.order._id : '',
-      isAction: false
+      isAction: true
     },
     user: state.auth.user || {}
   }

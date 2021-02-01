@@ -32,23 +32,7 @@ class Orders extends Component {
         status: 'ALL'
       },
       columnsGrid: [
-        { selector: 'WO', name: 'Work Order', width: '120px', sortable: true },
-        { selector: 'PCT', name: 'PCT', width: 'calc((100% - 620px) / 9 * 2)', sortable: true },
-        { selector: 'userId.name', name: 'Tạo bởi', width: 'calc((100% - 620px) / 9 * 2)', sortable: true },
-        { selector: 'userId.department', name: 'Phân xưởng', width: 'calc((100% - 620px) / 9 * 2)', sortable: true },
-        { selector: 'content', name: 'Nội dung công tác', width: 'calc((100% - 620px) / 9 * 3)' },
-        { selector: 'timeStart', name: 'Ngày bắt đầu', width: '110px',
-          cell: (params) => moment(params.timeStart).format('DD/MM/YYYY')
-        },
-        { selector: 'timeStop', name: 'Ngày kết thúc', width: '110px',
-          cell: (params) => moment(params.timeStop).format('DD/MM/YYYY')
-        },
-        { selector: 'status', name: 'Trạng thái', width: '130px', sortable: true,
-          cell: (param) => {
-            return <div className={'lb-status color-' + param.status.toLowerCase().split(' ').join('-')}>{param.status}</div>;
-          }
-        },
-        { name: 'Hành động', width: '150px',
+        { name: '', width: '100px', center: true,
           cell: (params) => {
             let { user } = this.props;
             let data = JSON.parse(JSON.stringify(params));
@@ -97,7 +81,25 @@ class Orders extends Component {
               }
             </>
           }
+        },
+        { selector: 'WO', name: 'Work Order', width: '120px', sortable: true, center: true },
+        { selector: 'PCT', name: 'PCT', width: '120px', sortable: true, center: true },
+        { selector: 'userId.name', name: 'Tạo bởi', width: '180px', sortable: true },
+        { selector: 'status', name: 'Trạng thái', width: '130px', sortable: true, center: true,
+        cell: (param) => {
+          return <div className={'lb-status color-' + param.status.toLowerCase().split(' ').join('-')}>{param.status}</div>;
         }
+      },
+        
+        { selector: 'content', name: 'Nội dung công tác', width: '500px' },
+        { selector: 'timeStart', name: 'Ngày bắt đầu', width: '130px',sortable: true, center: true,
+          cell: (params) => moment(params.timeStart).format('DD/MM/YYYY')
+        },
+        { selector: 'timeStop', name: 'Ngày kết thúc', width: '130px',sortable: true, center: true,
+          cell: (params) => moment(params.timeStop).format('DD/MM/YYYY')
+        },
+       
+        { selector: 'userId.department', name: 'Phân xưởng', width: '150px', sortable: true },
       ]
     }
   }
