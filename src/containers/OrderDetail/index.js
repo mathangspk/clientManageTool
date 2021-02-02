@@ -53,24 +53,24 @@ class DocumentCreator {
         new Paragraph("\n"),
         this.createHeading("Nhân viên nhóm công tác"),
         new Paragraph("\n"),
-        this.createHeaderTable("STT", "HỌ VÀ TÊN"),
+        this.createHeaderTableNV("STT", "HỌ VÀ TÊN"),
 
         ...employees
           .map((nv) => {
             const arr = [];
-            arr.push(this.createContentTable(nv));
+            arr.push(this.createContentTableNV(nv));
             return arr;
           })
           .reduce((prev, curr) => prev.concat(curr), []),
         new Paragraph("\n"),
         this.createHeading("Danh sách Công cụ dụng cụ mượn"),
         new Paragraph("\n"),
-        this.createHeaderTable("STT", "TÊN CÔNG CỤ"),
+        this.createHeaderTable("STT", "TÊN CÔNG CỤ", "SỐ LƯỢNG"),
 
         ...listTool
           .map((tool) => {
             const arr = [];
-            arr.push(this.createContentTable(tool));
+            arr.push(this.createContentTableTool(tool));
             return arr;
           }).reduce((prev, curr) => prev.concat(curr), []),
         new Paragraph("\n"), new Paragraph("\n"), new Paragraph("\n"),
@@ -209,20 +209,28 @@ class DocumentCreator {
       })]
     })
   }
-  createTableRow(data) {
+  createTableRowTool(data) {
     return new TableRowD({
       children: [
         this.createTableCell(String(data.stt)),
-        this.createTableCell(data.name)
+        this.createTableCell(data.name),
+        this.createTableCell(String(data.quantity)),
+      ],
+    })
+  }
+  createTableRowNV(data) {
+    return new TableRowD({
+      children: [
+        this.createTableCell(String(data.stt)),
+        this.createTableCell(data.name),
       ],
     })
   }
 
-  createContentTable(data) {
+  createContentTableTool(data) {
     return new TableD({
-
       rows: [
-        this.createTableRow(data)
+        this.createTableRowTool(data)
       ],
       width: {
         size: 200,
@@ -231,7 +239,19 @@ class DocumentCreator {
       columnWidths: [10, 10, 10],
     });
   }
-  createHeaderTable(firstCol, secondCol) {
+  createContentTableNV(data) {
+    return new TableD({
+      rows: [
+        this.createTableRowNV(data)
+      ],
+      width: {
+        size: 200,
+        type: WidthType.AUTO,
+      },
+      columnWidths: [10, 10, 10],
+    });
+  }
+  createHeaderTable(firstCol, secondCol, thirCol) {
     return new TableD({
 
       rows: [
@@ -257,7 +277,54 @@ class DocumentCreator {
                   size: 16
                 })]
               })], columnSpan: 1,
+            }),
+            new TableCellD({
+              children: [new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new TextRun({
+                  text: `${thirCol}`,
+                  bold: true,
+                  size: 16
+                })]
+              })], columnSpan: 1,
             })
+          ],
+        })
+      ],
+      width: {
+        size: 200,
+        type: WidthType.AUTO,
+      },
+      columnWidths: [10, 10, 10],
+    });
+  }
+  createHeaderTableNV(firstCol, secondCol) {
+    return new TableD({
+
+      rows: [
+        new TableRowD({
+          tableHeader: true,
+          children: [
+            new TableCellD({
+              children: [new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new TextRun({
+                  text: `${firstCol}`,
+                  bold: true,
+                  size: 16
+                })]
+              })], columnSpan: 1,
+            }),
+            new TableCellD({
+              children: [new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new TextRun({
+                  text: `${secondCol}`,
+                  bold: true,
+                  size: 16
+                })]
+              })], columnSpan: 1,
+            }),
           ],
         })
       ],
@@ -437,16 +504,39 @@ class OrderDetail extends Component {
         name: element.name
       })
     });
-
     const tool = order.toolId;
+    let toolName = [];
+    tool.forEach(element => { toolName.push(element.name) });
+    let sortToolName = toolName.sort();
+    console.log(sortToolName);
+
     const listTool = [];
     var indexT = 1;
-    tool.forEach(element => {
+    let elementCurrent = '';
+    let quantity = 0;
+
+    for (let i = 0; i < sortToolName.length; i++) {
+      if (sortToolName[i] !== elementCurrent) {
+        if (quantity > 0) {
+          listTool.push({
+            stt: indexT++,
+            name: elementCurrent,
+            quantity: quantity
+          });
+        }
+        elementCurrent = sortToolName[i];
+        quantity = 1;
+      } else {
+        quantity++;
+      }
+    }
+    if (quantity > 0) {
       listTool.push({
         stt: indexT++,
-        name: element.name
-      })
-    })
+        name: elementCurrent,
+        quantity: quantity
+      });
+    }
     const workOrderInfo = [
       {
         WO: order.WO,
@@ -462,9 +552,9 @@ class OrderDetail extends Component {
     ]);
 
     Packer.toBlob(doc).then(blob => {
-      console.log(blob);
-      saveAs(blob, "example.docx");
-      console.log("Document created successfully");
+      //console.log(blob);
+      saveAs(blob, `${order.WO} `+"_"+`${order.userId.name}`+ ".docx");
+      //console.log("Document created successfully");
     });
   }
 
@@ -635,7 +725,7 @@ class OrderDetail extends Component {
     let returnToolComplete = order.toolId.filter(tool => tool.status === 1)
     let countToolId = order.toolId.length;
     let toolComplete;
-    if(returnToolComplete.length === countToolId) toolComplete = true;
+    if (returnToolComplete.length === countToolId) toolComplete = true;
     else toolComplete = false;
     if (!order.userId) return <></>;
     else if (order.status === 'START' && user._id === order.userId._id && order.toolId.length === 0) {

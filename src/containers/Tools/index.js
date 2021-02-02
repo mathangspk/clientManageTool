@@ -144,8 +144,6 @@ class Tools extends Component {
         { selector: 'type', name: 'Loại', minWidth: '100px', maxWidth: '150px', sortable: true, allowOverflow: false, wrap: false },
         { selector: 'woName', name: 'Work Order', width: '120px', sortable: true },
         { selector: 'userName', name: 'Người dùng', width: '200px', sortable: true },
-
-
       ]
     }
   }
