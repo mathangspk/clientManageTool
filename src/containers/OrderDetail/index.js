@@ -442,7 +442,7 @@ class OrderDetail extends Component {
                       this.onClickAddToolInList(data)
                     }}
                   >
-                    <Add color="blue" fontSize="small" />
+                    <Add color="primary" fontSize="small" />
                   </Fab>
             &nbsp;
                   <Fab
@@ -467,7 +467,7 @@ class OrderDetail extends Component {
                       this.onClickReturnTool(data)
                     }}
                   >
-                    <KeyboardReturn color="blue" fontSize="small" />
+                    <KeyboardReturn fontSize="small" />
                   </Fab>
             &nbsp;
                   <Fab
@@ -886,7 +886,7 @@ class OrderDetail extends Component {
                   <DataTable
                     noHeader={true}
                     keyField={'_id'}
-                    columns={order.isAction ? columnsGrid : columnsGridComplete}
+                    columns={order.status !== "COMPLETE" ? columnsGrid : columnsGridComplete}
                     data={this.genarateTools(order)}
                     striped={true}
                     pagination
@@ -941,6 +941,8 @@ const mapStateToProps = (state, ownProps) => {
       timeStop: state.orders.order ? state.orders.order.timeStop : '',
       toolId: state.orders.order ? state.orders.order.toolId : [],
       content: state.orders.order ? state.orders.order.content : '',
+      location: state.orders.order ? state.orders.order.location : '',
+      KKS: state.orders.order ? state.orders.order.KKS : '',
       userId: state.orders.order ? state.orders.order.userId : {},
       NV: state.orders.order ? state.orders.order.NV : [],
       note: state.orders.order ? state.orders.order.note : '',

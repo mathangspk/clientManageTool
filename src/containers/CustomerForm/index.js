@@ -42,6 +42,25 @@ class CustomerForm extends Component {
       addCustomer(newCustomer);
     }
   };
+  resetPassword = () => {
+    const { customerActionsCreator, customerEditting, user } = this.props;
+    const { addCustomer, updateCustomer } = customerActionsCreator;
+    const { name, email, phone, department, group } = customerEditting;
+    const newCustomer = {
+      name,
+      email,
+      password:"123456",
+      phone,
+      department: department || '',
+      group: group || '',
+      admin: this.state.admin || false
+    }
+    if (customerEditting) {
+      updateCustomer(newCustomer);
+    } else {
+      addCustomer(newCustomer);
+    }
+  };
 
   handleAdmin = (e) => {
     this.setState({ admin: e.target.checked });
@@ -163,6 +182,7 @@ class CustomerForm extends Component {
             justify="flex-end"
             alignItems="flex-end"
           >
+            <Button onClick={()=>this.resetPassword()}>Reset PassWord</Button>
             <Button onClick={hideModal}>Hủy</Button>
             <Button disabled={invalid || submitting} type="submit">
               Lưu

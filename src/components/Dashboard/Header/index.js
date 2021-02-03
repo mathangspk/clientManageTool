@@ -199,7 +199,7 @@ class Header extends Component {
     return result;
   }
   generateOrder = (item) => {
-    return [item.WO, item.PCT, item.userId.name, item.userId.department, item.content, moment(item.timeStart).format('DD-MM-YYYY'), moment(item.timeStop).format('DD-MM-YYYY'), item.status]
+    return [item.PCT, item.userId.department, item.location, item.KKS, item.content,  moment(item.timeStart).format('DD-MM-YYYY'), moment(item.timeStop).format('DD-MM-YYYY'),item.userId.name, item.WO]
   }
   generateTool = (item) => {
     if (item.woInfo && item.woInfo.length > 0) {
@@ -242,7 +242,7 @@ class Header extends Component {
         params = JSON.parse(JSON.stringify(order.params));
         delete params.skip;
         delete params.limit;
-        header = ["Work Order", "PCT", "Người dùng", "Phân xưởng", "Nội dung công tác", "Ngày bắt đầu", "Ngày kết thúc", "Trạng thái"];
+        header = ["Số phiếu", "PX thực hiện", "Địa điểm công tác", "Hệ thống/KKS", "Nội dung công tác", "Ngày bắt đầu", "Ngày kết thúc", "Nhóm công tác", "Ghi chú"];
         genData = this.generateOrder;
         url = 'api/orders/search';
         dataBind = 'data.Data.Row';

@@ -49,12 +49,14 @@ class OrderForm extends Component {
     const { orderActionsCreator, orderEditting, user } = this.props;
     // const { userIdSelect } = this.state;
     const { addOrder, updateOrder } = orderActionsCreator;
-    const { WO, timeStart, timeStop, content } = data;
+    const { WO, timeStart, timeStop, content, location, KKS } = data;
     const newOrder = {
       ...(orderEditting || {}),
       WO,
       timeStart,
       timeStop,
+      location,
+      KKS,
       userId: user._id,
       status: 'START',
       statusTool: 'START',
@@ -114,6 +116,26 @@ class OrderForm extends Component {
               id="WO"
               name="WO"
               label="Work Order"
+              className={classes.TextField}
+              margin="normal"
+              component={renderTextField}
+            ></Field>
+          </Grid>
+          <Grid item md={12}>
+            <Field
+              id="location"
+              name="location"
+              label="Địa điểm công tác"
+              className={classes.TextField}
+              margin="normal"
+              component={renderTextField}
+            ></Field>
+          </Grid>
+          <Grid item md={12}>
+            <Field
+              id="KKS"
+              name="KKS"
+              label="Hệ thống / KKS"
               className={classes.TextField}
               margin="normal"
               component={renderTextField}
@@ -217,6 +239,8 @@ const mapStateToProps = (state, ownProps) => {
     initialValues: {
       WO: state.orders.order ? state.orders.order.WO : null,
       PCT: state.orders.order ? state.orders.order.PCT : null,
+      location: state.orders.order ? state.orders.order.location : null,
+      KKS: state.orders.order ? state.orders.order.KKS : null,
       content: state.orders.order ? state.orders.order.content : '',
       timeStart: state.orders.order ? moment(state.orders.order.timeStart).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
       timeStop: state.orders.order ? moment(state.orders.order.timeStop).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')

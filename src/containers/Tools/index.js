@@ -441,19 +441,19 @@ class Tools extends Component {
       })
     }
     if (dataSearch.userName && dataSearch.status == '2') {
-      console.log(dataSearch.userName)
+      
       _tools = _tools.filter(t =>
         this.removeVietnameseTones(t.woInfo[0].userInfo.name).toLowerCase().indexOf(dataSearch.userName.toLowerCase()) > -1
       )
     }
-    console.log(_tools);
+    
 
     _tools.forEach(t => {
       if (t.woInfo && t.woInfo.length > 0) {
         let woInfo = t.woInfo.filter(wo => (wo.status !== "COMPLETE"));
         if (woInfo.length > 0 && t.status === 2) {
           let showInfo = t.woInfo.filter(wo => (wo.WO === t.wo));
-          console.log(showInfo)
+          
           if (showInfo.length > 0) {
             t.woName = showInfo[0].WO;
             t.userName = showInfo[0].userInfo.name

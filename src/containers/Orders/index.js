@@ -39,7 +39,7 @@ class Orders extends Component {
             //let checkUser = (user.admin || user._id === params.userId._id);
             let checkUser = (user.admin);
 
-            console.log(user)
+            //console.log(user)
             return <>
               <Fab
                 color="default"
@@ -91,6 +91,8 @@ class Orders extends Component {
         }
       },
         
+        { selector: 'location', name: 'Địa điểm công tác', width: '150px' },
+        { selector: 'KKS', name: 'Hệ thống/KKS', width: '150px' },
         { selector: 'content', name: 'Nội dung công tác', width: '500px' },
         { selector: 'timeStart', name: 'Ngày bắt đầu', width: '130px',sortable: true, center: true,
           cell: (params) => moment(params.timeStart).format('DD/MM/YYYY')
