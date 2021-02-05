@@ -8,7 +8,7 @@ import { bindActionCreators, compose } from 'redux';
 import styles from './style';
 import OrderForm from '../OrderForm';
 import { Grid, withStyles, Fab, TextField, FormControl, InputLabel, Select, MenuItem, Input } from '@material-ui/core';
-import { DeleteForever, Edit, Visibility } from '@material-ui/icons';
+import { DeleteForever, Edit, Visibility, Lock } from '@material-ui/icons';
 import { Redirect } from "react-router-dom";
 import DataTable from 'react-data-table-component';
 import moment from 'moment';
@@ -32,12 +32,13 @@ class Orders extends Component {
         status: 'ALL'
       },
       columnsGrid: [
-        { name: '', width: '100px', center: true,
+        {
+          name: '', width: '100px', center: true,
           cell: (params) => {
             let { user } = this.props;
             let data = JSON.parse(JSON.stringify(params));
             let checkUser = (user.admin || user._id === params.userId._id);
-            //let checkUser = (user.admin);
+            
 
             //console.log(user)
             return <>
@@ -53,21 +54,21 @@ class Orders extends Component {
               </Fab>
               {
                 checkUser ?
-                <>
+                  <>
+                    &nbsp;&nbsp;
+                    <Fab
+                      color="default"
+                      aria-label="Sửa WO"
+                      size='small'
+                      onClick={() => {
+                        this.onClickEdit(data)
+                      }}
+                    >
+                      <Edit color="primary" />
+                    </Fab>
                   &nbsp;&nbsp;
-                  <Fab
-                    color="default"
-                    aria-label="Sửa WO"
-                    size='small'
-                    onClick={() => {
-                      this.onClickEdit(data)
-                    }}
-                  >
-                    <Edit color="primary" />
-                  </Fab>
-                  &nbsp;&nbsp;
-                  
-                  {/* <Fab
+
+                    {/* <Fab
                     color="default"
                     aria-label="Xóa WO"
                     size='small'
@@ -77,7 +78,7 @@ class Orders extends Component {
                     >
                     <DeleteForever color="error" fontSize="small" />
                   </Fab> */}
-                </> : <></>
+                  </> : <></>
               }
             </>
           }
@@ -85,22 +86,41 @@ class Orders extends Component {
         { selector: 'WO', name: 'Work Order', width: '120px', sortable: true, center: true },
         { selector: 'PCT', name: 'PCT', width: '120px', sortable: true, center: true },
         { selector: 'userId.name', name: 'Tạo bởi', width: '180px', sortable: true },
-        { selector: 'status', name: 'Trạng thái', width: '130px', sortable: true, center: true,
-        cell: (param) => {
-          return <div className={'lb-status color-' + param.status.toLowerCase().split(' ').join('-')}>{param.status}</div>;
-        }
-      },
-        
+        {
+          selector: 'status', name: 'Trạng thái', width: '150px', sortable: true, center: true,
+          cell: (param) => {
+            let { user } = this.props;
+            let checkPkt = (user.pkt);
+            return <>
+              <div className={'lb-status color-' + param.status.toLowerCase().split(' ').join('-')}>
+                {param.status}
+              </div>
+              {/* { checkPkt && param.status === "COMPLETE" ? <>&nbsp; 
+              <Fab
+                color="default"
+                aria-label="Đóng WO"
+                size='small'
+                onClick={() => {
+                  this.onCloseWo(param)
+                }}
+              >
+                <Lock color="primary" />
+              </Fab> </> : <></>} */}
+              </>
+          }
+        },
         { selector: 'location', name: 'Địa điểm công tác', width: '150px' },
         { selector: 'KKS', name: 'Hệ thống/KKS', width: '150px' },
         { selector: 'content', name: 'Nội dung công tác', width: '500px' },
-        { selector: 'timeStart', name: 'Ngày bắt đầu', width: '130px',sortable: true, center: true,
+        {
+          selector: 'timeStart', name: 'Ngày bắt đầu', width: '130px', sortable: true, center: true,
           cell: (params) => moment(params.timeStart).format('DD/MM/YYYY')
         },
-        { selector: 'timeStop', name: 'Ngày kết thúc', width: '130px',sortable: true, center: true,
+        {
+          selector: 'timeStop', name: 'Ngày kết thúc', width: '130px', sortable: true, center: true,
           cell: (params) => moment(params.timeStop).format('DD/MM/YYYY')
         },
-       
+
         { selector: 'userId.department', name: 'Phân xưởng', width: '150px', sortable: true },
       ]
     }
@@ -146,7 +166,22 @@ class Orders extends Component {
       redirect: true,
       idRedirect
     })
-  }
+  };
+  onCloseWo = (data) => {
+    const { orderActionCreator, user } = this.props;
+    const { updateOrder } = orderActionCreator;
+    const newOrder = JSON.parse(JSON.stringify(data));
+    switch (newOrder.status) {
+      case 'COMPLETE':
+        if (user.pkt) {
+          newOrder.status = 'CLOSE'
+        }
+        break;
+      default:
+        break;
+    }
+    updateOrder(newOrder);
+  };
   onClickEdit = (data) => {
     const { orderActionCreator, modalActionsCreator, user } = this.props;
     const { setOrderEditing } = orderActionCreator;
@@ -286,6 +321,7 @@ class Orders extends Component {
                   <option value="READY">READY</option>
                   <option value="IN PROGRESS">IN PROGRESS</option>
                   <option value="COMPLETE">COMPLETE</option>
+                  <option value="CLOSE">CLOSE</option>
                 </Select>
               </FormControl>
             </div>

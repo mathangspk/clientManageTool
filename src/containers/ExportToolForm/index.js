@@ -40,7 +40,7 @@ class ExportToolForm extends Component {
       getWithToken('api/orders/collect-tools', token, { params }).then(res => {
         console.log(res);
         if (res.data.Status.StatusCode === 200) {
-          let data = JSON.parse(JSON.stringify(res.data.Data.Row.filter(order => order.status === 'COMPLETE')))
+          let data = JSON.parse(JSON.stringify(res.data.Data.Row.filter(order => order.status === 'COMPLETE' || order.status === 'CLOSE')))
           let lstTool = _.flattenDeep(data.map(row => row.toolId));
           // let lstTypeTool = _.uniq(lstTool.map(tool => tool.type));
           let lstTypeTool = _.uniq(lstTool.map(tool => tool.name));
