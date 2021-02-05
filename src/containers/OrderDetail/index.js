@@ -553,7 +553,7 @@ class OrderDetail extends Component {
 
     Packer.toBlob(doc).then(blob => {
       //console.log(blob);
-      saveAs(blob, `${order.WO} `+"_"+`${order.userId.name}`+ ".docx");
+      saveAs(blob, `${order.WO} ` + "_" + `${order.userId.name}` + ".docx");
       //console.log("Document created successfully");
     });
   }
@@ -714,6 +714,9 @@ class OrderDetail extends Component {
         }
         break;
       case 'COMPLETE':
+        if (user.pkt) {
+          newOrder.status = 'CLOSE'
+        }
         break;
       default:
         break;
@@ -748,7 +751,10 @@ class OrderDetail extends Component {
           return <></>;
         }
       case 'COMPLETE':
-        return <></>;
+        if (user.pkt) {
+          return <Button variant="contained" color="primary" onClick={() => { this.onClickVerify(order) }}>Đóng WO</Button>;
+        }
+
       default:
         return <></>;
     }
@@ -769,7 +775,7 @@ class OrderDetail extends Component {
     const { user } = this.props
     if (!order.userId) return 'hide';
     if (!user.admin && (user._id !== order.userId._id || order.status !== 'START')) return 'hide';
-    if (order.status === 'COMPLETE') return 'hide';
+    if (order.status === 'COMPLETE' || order.status === 'CLOSE' ) return 'hide';
     return ''
   }
   getImage = (images) => {
@@ -886,7 +892,10 @@ class OrderDetail extends Component {
                   <DataTable
                     noHeader={true}
                     keyField={'_id'}
-                    columns={order.status !== "COMPLETE" ? columnsGrid : columnsGridComplete}
+                    columns={order.status === "START"
+                      || order.status === "READY"
+                      || order.status === "IN PROGRESS"
+                      ? columnsGrid : columnsGridComplete}
                     data={this.genarateTools(order)}
                     striped={true}
                     pagination

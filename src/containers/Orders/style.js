@@ -82,6 +82,9 @@ const style = (theme) => ({
       },
       '&.color-complete': {
         backgroundColor: '#28a745'
+      },
+      '&.color-close': {
+        backgroundColor: '#000000'
       }
     }
   },

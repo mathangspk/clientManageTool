@@ -36,8 +36,8 @@ class Orders extends Component {
           cell: (params) => {
             let { user } = this.props;
             let data = JSON.parse(JSON.stringify(params));
-            //let checkUser = (user.admin || user._id === params.userId._id);
-            let checkUser = (user.admin);
+            let checkUser = (user.admin || user._id === params.userId._id);
+            //let checkUser = (user.admin);
 
             //console.log(user)
             return <>

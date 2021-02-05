@@ -16,6 +16,7 @@ class CustomerForm extends Component {
     super(props)
     this.state = {
       admin: props.customerEditting ? (props.customerEditting.admin || false) : false,
+      pkt: props.customerEditting ? (props.customerEditting.pkt || false) : false,
       isEditPassword: props.customerEditting && props.customerEditting._id === props.user._id
     }
   }
@@ -31,7 +32,8 @@ class CustomerForm extends Component {
       phone,
       department: department || '',
       group: group || '',
-      admin: this.state.admin || false
+      admin: this.state.admin || false,
+      pkt: this.state.pkt || false
     }
     if (customerEditting) {
       if (customerEditting._id !== user._id) {
@@ -53,7 +55,8 @@ class CustomerForm extends Component {
       phone,
       department: department || '',
       group: group || '',
-      admin: this.state.admin || false
+      admin: this.state.admin || false,
+      pkt: this.state.pkt || false
     }
     if (customerEditting) {
       updateCustomer(newCustomer);
@@ -64,6 +67,9 @@ class CustomerForm extends Component {
 
   handleAdmin = (e) => {
     this.setState({ admin: e.target.checked });
+  }
+  handlePkt = (e) => {
+    this.setState({ pkt: e.target.checked });
   }
 
   render() {
@@ -174,6 +180,18 @@ class CustomerForm extends Component {
                 }
                 label="Admin"
               />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={this.state.pkt || false}
+                    onChange={this.handlePkt}
+                    name="pkt"
+                    id="pkt"
+                    color="primary"
+                  />
+                }
+                label="Pkt"
+              />
             </Grid>
           }
           <Grid
@@ -210,6 +228,7 @@ const mapStateToProps = (state, ownProps) => {
       department: state.customers.customerEditting ? state.customers.customerEditting.department : null,
       group: state.customers.customerEditting ? state.customers.customerEditting.group : null,
       admin: state.customers.customerEditting ? state.customers.customerEditting.admin : false,
+      pkt: state.customers.customerEditting ? state.customers.customerEditting.admin : false,
     },
     user: state.auth.user
   };
