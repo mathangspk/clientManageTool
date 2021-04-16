@@ -213,7 +213,11 @@ class Tools extends Component {
       newTool.wo = newOrder.WO;
     }
     newOrder.toolId = lstTool
+    if (lstTool.length !==0){
+      newOrder.status = 'IN PROGRESS'
+    }
     newTool.woInfo = newOrder
+    console.log(newTool);
     // updateOrder(newOrder);
     updateTool(newTool);
   }

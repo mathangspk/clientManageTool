@@ -688,13 +688,9 @@ class OrderDetail extends Component {
     const haveToolInList = data.toolId;
     switch (newOrder.status) {
       case 'START':
-        if (user.admin) {
-          newOrder.status = 'READY'
-          newOrder.statusTool = 'READY'
-        }
-        else if (haveToolInList.length === 0) {
-          newOrder.status = 'COMPLETE'
-          newOrder.statusTool = "COMPLETE"
+        if (haveToolInList.length === 0) {
+          newOrder.status = 'IN PROGRESS NO TOOL'
+          newOrder.statusTool = "IN PROGRESS NO TOOL"
         }
         else {
           newOrder.status = 'READY'
@@ -713,6 +709,35 @@ class OrderDetail extends Component {
           newOrder.statusTool = "COMPLETE"
         }
         break;
+      case 'IN PROGRESS NO TOOL':
+        let self = this
+        popupConfirm({
+          title: 'Delete',
+          html: "Bạn muốn bỏ công cụ này?",
+          ifOk: () => {
+            // const { orderActionCreator, toolActionCreator, order } = self.props;
+            // const { currentIdTool } = self.state;
+            // const { updateOrder } = orderActionCreator;
+            // const { updateTool } = toolActionCreator;
+            // const newOrder = JSON.parse(JSON.stringify(order));
+            // const newTool = JSON.parse(JSON.stringify(data));
+            // let indexTool = newOrder.toolId.findIndex(function (item, i) {
+            //   return item._id === data._id
+            // });
+            // //let indexTool = newOrder.toolId.indexOf(data._id);
+            // newOrder.toolId.splice(indexTool, 1);
+            // newTool.wo = "";
+            // newTool.status = 1;
+            // if (currentIdTool._id === data._id) {
+            //   self.setState({ currentIdTool: {} });
+            // }
+            // updateOrder(newOrder);
+            // updateTool(newTool);
+          }
+        })
+        newOrder.status = 'COMPLETE'
+        newOrder.statusTool = "COMPLETE"
+        break;
       case 'COMPLETE':
         if (user.pkt) {
           newOrder.status = 'CLOSE'
@@ -724,9 +749,12 @@ class OrderDetail extends Component {
     updateOrder(newOrder);
   };
   groupButtonActions = () => {
-    const { order, user } = this.props
+    const { order, user, orderActionCreator } = this.props
+    const { updateOrder } = orderActionCreator;
+    const newOrder = JSON.parse(JSON.stringify(order));
     let returnToolComplete = order.toolId.filter(tool => tool.status === 1)
     let countToolId = order.toolId.length;
+    let haveTool = order.toolId;
     let toolComplete;
     if (returnToolComplete.length === countToolId) toolComplete = true;
     else toolComplete = false;
@@ -749,6 +777,12 @@ class OrderDetail extends Component {
           return <Button variant="contained" color="primary" onClick={() => { this.onClickVerify(order) }}>Hoàn Thành</Button>;
         } else {
           return <></>;
+        }
+      case 'IN PROGRESS NO TOOL':
+        if (user.admin && haveTool.length !== 0) {
+          return <Button variant="contained" color="primary" onClick={() => { this.onClickVerify(order) }}>Hoàn Thành Co Tool</Button>;
+        } else {
+          return <Button variant="contained" color="primary" onClick={() => { this.onClickVerify(order) }}>Hoàn Thành</Button>;
         }
       case 'COMPLETE':
         if (user.pkt) {
@@ -775,7 +809,7 @@ class OrderDetail extends Component {
     const { user } = this.props
     if (!order.userId) return 'hide';
     if (!user.admin && (user._id !== order.userId._id || order.status !== 'START')) return 'hide';
-    if (order.status === 'COMPLETE' || order.status === 'CLOSE' ) return 'hide';
+    if (order.status === 'COMPLETE' || order.status === 'CLOSE') return 'hide';
     return ''
   }
   getImage = (images) => {
